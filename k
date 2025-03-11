@@ -101,7 +101,7 @@ touch "${WORKING_DIR}/.setup_complete"
 printf "\r\033[K\033[0;32mDependencies installed!\e[0m"
 
 ##############################################################################
-# Не создаём systemd unit-файл – запуск будем осуществлять вручную.
+# Systemd интеграция отсутствует – запуск осуществляется вручную.
 printf "\n\033[0;32mHikka installation complete for userbot '${USERBOT_NAME}'!\e[0m"
 printf "\nTo start the bot, execute the following commands:\n"
 printf "cd %s/Heroku_%s\n" "$WORKING_DIR" "$USERBOT_NAME"

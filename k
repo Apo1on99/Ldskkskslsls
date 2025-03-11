@@ -1,5 +1,12 @@
 #!/bin/bash
 # Скрипт установки Hikka для локального запуска и деплоя на Heroku
+# Поддерживает установку нескольких юзер-ботов с разными именами.
+# Использование:
+#   ./install.sh <имя_бота>
+# Если имя не указано, по умолчанию используется "ubalala"
+
+# Получаем имя юзер-бота из аргументов (или по умолчанию)
+USERBOT_NAME=${1:-ubalala}
 
 # Получаем текущую рабочую директорию
 WORKING_DIR=$(pwd)
@@ -40,7 +47,7 @@ if [ -f ".setup_complete" ]; then
     printf "\rExisting installation detected. Hikka is already installed.\n"
 fi
 
-echo "Preparing installation..." >"${WORKING_DIR}/hikka-install.log"
+echo "Preparing installation for userbot: ${USERBOT_NAME}" >"${WORKING_DIR}/hikka-install.log"
 
 PYVER="3"  # Используем python3
 
@@ -48,14 +55,14 @@ PYVER="3"  # Используем python3
 printf "\r\033[K\033[0;32mPreparation complete!\e[0m"
 printf "\n\r\033[0;34mCloning repo...\e[0m"
 
-# Удаляем старую версию, если есть
-rm -rf "${WORKING_DIR}/Heroku"
-runout git clone https://github.com/coddrago/Heroku "${WORKING_DIR}/Heroku" || {
+# Удаляем старую версию для данного бота, если есть
+rm -rf "${WORKING_DIR}/Heroku_${USERBOT_NAME}"
+runout git clone https://github.com/coddrago/Heroku "${WORKING_DIR}/Heroku_${USERBOT_NAME}" || {
     errorout "Clone failed."
     exit 3
 }
 
-cd "${WORKING_DIR}/Heroku" || {
+cd "${WORKING_DIR}/Heroku_${USERBOT_NAME}" || {
     printf "\r\033[0;33mPlease install git and restart installer\e[0m"
     exit 7
 }
@@ -68,12 +75,13 @@ printf "\r\033[K\033[0;32mRepo cloned!\e[0m"
 ##############################################################################
 printf "\n\r\033[0;34mCreating config.json...\e[0m"
 
-# Создаем файл config.json внутри папки Heroku
-cat > "${WORKING_DIR}/Heroku/config.json" <<EOL
+# Создаем файл config.json внутри папки с ботом
+cat > "${WORKING_DIR}/Heroku_${USERBOT_NAME}/config.json" <<EOL
 {
     "api_id": 7301124,
     "api_hash": "46eb50618e7a00ca8b165275d9e0fe0b",
-    "app_name": "Discipulus Pietas Omnis"
+    "app_name": "Discipulus Pietas Omnis",
+    "userbot_name": "${USERBOT_NAME}"
 }
 EOL
 
@@ -94,4 +102,35 @@ touch "${WORKING_DIR}/.setup_complete"
 
 ##############################################################################
 printf "\r\033[K\033[0;32mDependencies installed!\e[0m"
-printf "\n\033[0;32mHikka installation complete! To start it, run: python$PYVER -m hikka\e[0m\n\n"
+
+##############################################################################
+# Создаем systemd unit file для данного юзер-бота с корректной рабочей директорией
+SERVICE_FILE="/etc/systemd/system/${USERBOT_NAME}.service"
+printf "\n\r\033[0;34mCreating systemd service file ${SERVICE_FILE}...\e[0m"
+
+cat > "${SERVICE_FILE}" <<EOF
+[Unit]
+Description=Hikka userbot ${USERBOT_NAME}
+After=network.target
+
+[Service]
+Type=simple
+User=$(whoami)
+WorkingDirectory=${WORKING_DIR}/Heroku_${USERBOT_NAME}
+ExecStart=/usr/bin/python3 -m hikka
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Перезагружаем systemd, включаем и запускаем сервис
+systemctl daemon-reload
+systemctl enable "${USERBOT_NAME}.service"
+systemctl restart "${USERBOT_NAME}.service"
+
+##############################################################################
+printf "\r\033[K\033[0;32mService ${USERBOT_NAME} installed and started!\e[0m"
+printf "\n\033[0;32mHikka installation complete for userbot '${USERBOT_NAME}'!\e[0m"
+printf "\nTo check status: systemctl status ${USERBOT_NAME}.service\n\n"

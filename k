@@ -3,12 +3,12 @@
 # Поддерживает установку нескольких юзер-ботов с разными именами.
 # Использование:
 #   ./install.sh <имя_бота>
-# Если имя не указано, по умолчанию используется "ubalala"
+# Если имя не указано, используется "ubalala" по умолчанию
 
-# Получаем имя юзер-бота из аргументов (или по умолчанию)
+# Имя юзер-бота (например, для тестового — ubalala)
 USERBOT_NAME=${1:-ubalala}
 
-# Получаем текущую рабочую директорию
+# Получаем текущую рабочую директорию (абсолютный путь)
 WORKING_DIR=$(pwd)
 
 # Функции логирования
@@ -32,16 +32,16 @@ errorout() {
 ##############################################################################
 clear
 
-printf "\n\e[1;35;47m                   \e[0m"
-printf "\n\e[1;35;47m █ █ █ █▄▀ █▄▀ ▄▀█ \e[0m"
-printf "\n\e[1;35;47m █▀█ █ █ █ █ █ █▀█ \e[0m"
-printf "\n\e[1;35;47m                   \e[0m"
-printf "\n\n\e[3;34;40m Installing...\e[0m\n\n"
+printf "\n\e[1;35;47m                   \e[0m\n"
+printf "\e[1;35;47m █ █ █ █▄▀ █▄▀ ▄▀█ \e[0m\n"
+printf "\e[1;35;47m █▀█ █ █ █ █ █ █▀█ \e[0m\n"
+printf "\e[1;35;47m                   \e[0m\n"
+printf "\n\e[3;34;40m Installing...\e[0m\n\n"
 
 ##############################################################################
 printf "\r\033[0;34mPreparing for installation...\e[0m"
 
-# Если скрипт уже запускался ранее
+# Если скрипт уже запускался ранее (файл .setup_complete существует)
 if [ -f ".setup_complete" ]; then
     PYVER="3"
     printf "\rExisting installation detected. Hikka is already installed.\n"
@@ -55,7 +55,7 @@ PYVER="3"  # Используем python3
 printf "\r\033[K\033[0;32mPreparation complete!\e[0m"
 printf "\n\r\033[0;34mCloning repo...\e[0m"
 
-# Удаляем старую версию для данного бота, если есть
+# Клонируем репозиторий в отдельную папку для данного бота
 rm -rf "${WORKING_DIR}/Heroku_${USERBOT_NAME}"
 runout git clone https://github.com/coddrago/Heroku "${WORKING_DIR}/Heroku_${USERBOT_NAME}" || {
     errorout "Clone failed."
@@ -70,12 +70,9 @@ cd "${WORKING_DIR}/Heroku_${USERBOT_NAME}" || {
 printf "\r\033[K\033[0;32mRepo cloned!\e[0m"
 
 ##############################################################################
-# Если требуется переключиться на определённую версию или ветку, добавьте здесь нужные команды
-
-##############################################################################
 printf "\n\r\033[0;34mCreating config.json...\e[0m"
 
-# Создаем файл config.json внутри папки с ботом
+# Создаём файл config.json в папке с ботом
 cat > "${WORKING_DIR}/Heroku_${USERBOT_NAME}/config.json" <<EOL
 {
     "api_id": 7301124,
@@ -104,33 +101,8 @@ touch "${WORKING_DIR}/.setup_complete"
 printf "\r\033[K\033[0;32mDependencies installed!\e[0m"
 
 ##############################################################################
-# Создаем systemd unit file для данного юзер-бота с корректной рабочей директорией
-SERVICE_FILE="/etc/systemd/system/${USERBOT_NAME}.service"
-printf "\n\r\033[0;34mCreating systemd service file ${SERVICE_FILE}...\e[0m"
-
-cat > "${SERVICE_FILE}" <<EOF
-[Unit]
-Description=Hikka userbot ${USERBOT_NAME}
-After=network.target
-
-[Service]
-Type=simple
-User=$(whoami)
-WorkingDirectory=${WORKING_DIR}/Heroku_${USERBOT_NAME}
-ExecStart=/usr/bin/python3 -m hikka
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Перезагружаем systemd, включаем и запускаем сервис
-systemctl daemon-reload
-systemctl enable "${USERBOT_NAME}.service"
-systemctl restart "${USERBOT_NAME}.service"
-
-##############################################################################
-printf "\r\033[K\033[0;32mService ${USERBOT_NAME} installed and started!\e[0m"
+# Не создаём systemd unit-файл – запуск будем осуществлять вручную.
 printf "\n\033[0;32mHikka installation complete for userbot '${USERBOT_NAME}'!\e[0m"
-printf "\nTo check status: systemctl status ${USERBOT_NAME}.service\n\n"
+printf "\nTo start the bot, execute the following commands:\n"
+printf "cd %s/Heroku_%s\n" "$WORKING_DIR" "$USERBOT_NAME"
+printf "python%s -m hikka\n\n" "$PYVER"

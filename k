@@ -64,12 +64,7 @@ printf "\r\033[K\033[0;32mRepo cloned!\e[0m"
 
 ##############################################################################
 # Переключаемся на нужную версию 1.6.8
-printf "\n\r\033[0;34mChecking out version 1.6.8...\e[0m"
-git checkout 1.6.8 || {
-    errorout "Checkout to version 1.6.8 failed!"
-    exit 5
-}
-printf "\r\033[K\033[0;32mVersion 1.6.8 checked out!\e[0m"
+
 
 ##############################################################################
 printf "\n\r\033[0;34mCreating config.json...\e[0m"

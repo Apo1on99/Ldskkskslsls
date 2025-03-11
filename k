@@ -49,13 +49,13 @@ printf "\r\033[K\033[0;32mPreparation complete!\e[0m"
 printf "\n\r\033[0;34mCloning repo...\e[0m"
 
 # Удаляем старую версию, если есть
-rm -rf "${WORKING_DIR}/Hikka"
-runout git clone https://github.com/hikariatama/Hikka/ "${WORKING_DIR}/Hikka" || {
+rm -rf "${WORKING_DIR}/Heroku"
+runout git clone https://github.com/coddrago/Heroku "${WORKING_DIR}/Heroku" || {
     errorout "Clone failed."
     exit 3
 }
 
-cd "${WORKING_DIR}/Hikka" || {
+cd "${WORKING_DIR}/Heroku" || {
     printf "\r\033[0;33mPlease install git and restart installer\e[0m"
     exit 7
 }
@@ -63,14 +63,13 @@ cd "${WORKING_DIR}/Hikka" || {
 printf "\r\033[K\033[0;32mRepo cloned!\e[0m"
 
 ##############################################################################
-# Переключаемся на нужную версию 1.6.8
-
+# Если требуется переключиться на определённую версию или ветку, добавьте здесь нужные команды
 
 ##############################################################################
 printf "\n\r\033[0;34mCreating config.json...\e[0m"
 
-# Создаем файл config.json внутри папки Hikka
-cat > "${WORKING_DIR}/Hikka/config.json" <<EOL
+# Создаем файл config.json внутри папки Heroku
+cat > "${WORKING_DIR}/Heroku/config.json" <<EOL
 {
     "api_id": 7301124,
     "api_hash": "46eb50618e7a00ca8b165275d9e0fe0b",
